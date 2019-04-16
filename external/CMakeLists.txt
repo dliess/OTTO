@@ -66,3 +66,9 @@ execute_process(COMMAND git submodule update --init -- foonathan_type_safe WORKI
 add_library(foonathan_type_safe INTERFACE)
 target_include_directories(foonathan_type_safe SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/foonathan_type_safe/include")
 target_include_directories(foonathan_type_safe SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/foonathan_type_safe/external/debug_assert")
+
+ # others
+ add_subdirectory(Midi)
+ add_subdirectory(FrontPanelIO)
+ add_subdirectory(FrontPanelSimulation)
+ add_subdirectory(Push2Device)

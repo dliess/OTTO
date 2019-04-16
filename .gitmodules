@@ -25,3 +25,15 @@
 [submodule "external/foonathan_type_safe"]
 	path = external/foonathan_type_safe
 	url = https://github.com/foonathan/type_safe
+[submodule "external/Midi"]
+	path = external/Midi
+	url = https://github.com/dliess/Midi.git
+[submodule "external/FrontPanelIO"]
+	path = external/FrontPanelIO
+	url = https://github.com/dliess/FrontPanelIO
+[submodule "external/Push2Device"]
+	path = external/Push2Device
+	url = https://github.com/dliess/Push2Device
+[submodule "external/FrontPanelSimulation"]
+	path = external/FrontPanelSimulation
+	url = https://github.com/dliess/FrontPanelSimulation
