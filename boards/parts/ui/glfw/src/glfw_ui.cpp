@@ -13,12 +13,25 @@
 #define OTTO_NVG_DELETE nvgDeleteGL3
 
 #include "board/ui/keys.hpp"
+#include "board/ui/push2callbacks.h"
 
 // C APIs. Include last
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 #include <nanovg_gl.h>
 
+#include <stdlib.h> // calloc
+
+#define __FRONTPANEL_SIMULATION__
+#ifdef __FRONTPANEL_SIMULATION__
+#include "FpSimulation.h"
+#include "Push2Topology.h"
+#else
+#include "Push2Device.h"
+#include "UsbMidiInputPortListProvider.h"
+#include "UsbMidiOutputPortListProvider.h"
+#include "UsbMidiPortNotifier.h"
+#endif
 namespace otto::glfw {
 
   Window::Window(int width, int height, const std::string& name)
@@ -210,29 +223,80 @@ namespace otto::services {
     glfwSetTime(0);
 
     double t, spent;
+
+#ifdef __FRONTPANEL_SIMULATION__
+  fp::Simulation<fp::Push2Topology> push2Device("127.0.0.1:50051");
+#else
+    midi::InputPortListProvider  inputPortListProvider;
+    if(!inputPortListProvider.init())
+    {
+        return;
+    }
+    midi::OutputPortListProvider outputPortListProvider;
+    if(!outputPortListProvider.init())
+    {
+        return;
+    }
+    midi::PortNotifier<midi::InputPortListProvider>   inputPortNotifier(inputPortListProvider);
+    midi::PortNotifier<midi::OutputPortListProvider>  outputPortNotifier(outputPortListProvider); 
+
+    Push2::Push2Device push2device(inputPortNotifier, outputPortNotifier);
+    //push2.registerCB();
+
+    inputPortNotifier.update();
+    outputPortNotifier.update();
+#endif
+    board::ui::Push2EncoderCb encoderCb;
+    push2Device.registerCB(encoderCb, fp::Widget(fp::Push2Topology::Encoder::eEncoder, fp::IdxAll));
+    push2Device.setLed(fp::Widget(fp::Push2Topology::Led::eLedT, 0), fp::Led::getRGB(fp::Led::Blue));
+    push2Device.setLed(fp::Widget(fp::Push2Topology::Led::eLedT, 1), fp::Led::getRGB(fp::Led::Green));
+    push2Device.setLed(fp::Widget(fp::Push2Topology::Led::eLedT, 2), {0xFB, 0xB8, 0x0B});
+    push2Device.setLed(fp::Widget(fp::Push2Topology::Led::eLedT, 3), fp::Led::getRGB(fp::Led::Red));
+
+    board::ui::Push2BtnCb buttonCb(push2Device);
+    push2Device.registerCB(buttonCb, fp::Widget(fp::Push2Topology::Button::eBtnB, fp::IdxAll));
+
+    char* buffer = static_cast<char*>(calloc(4, vg::width * vg::height));
+    //char* flippedBuffer = static_cast<char*>(calloc(4, vg::width * vg::height));
+
+    const auto displayId = fp::Push2Topology::Display::Id::eDisplay;
+    auto pRenderMedium = push2Device.getRenderMedium(fp::Widget(displayId));
+    pRenderMedium->setFrameBufRendering(false);
     while (!main_win.should_close() && Application::current().running()) {
       float scale;
 
       t = glfwGetTime();
+
+      push2Device.updateInputs();
+      //glScalef(1,-1,1);
 
       auto [winWidth, winHeight] = main_win.window_size();
       // Calculate pixel ration for hi-dpi devices.
        
       main_win.begin_frame();
       scale =
-        std::min((float) winWidth / (float) vg::width, (float) winHeight / (float) vg::height);
-      main_win.canvas().scale(scale, scale);
-
+        std::min((float) winWidth / (float) vg::width, ((float) winHeight) / (float) vg::height);
+      //main_win.canvas().scale(scale, scale);
+      //main_win.canvas().transform(1.0, 0.0, 0.0, 0.0, -1.0, vg::height);
+      main_win.canvas().transform(0.8,   0.0, 0.0,
+                                  -0.8,  0.0, vg::height * 1.06);
       draw_frame(main_win.canvas());
       main_win.end_frame();
 
       glfwPollEvents();
       flush_events();
 
+      glReadPixels(0, 0, vg::width, vg::height, GL_BGRA, GL_UNSIGNED_BYTE, buffer);
+      const fp::gfx::Rectangle rect( fp::gfx::Coord(100, 0),
+                                     fp::gfx::Size2D(vg::width, vg::height) );
+      pRenderMedium->streamToSubWindow(rect, reinterpret_cast<fp::ColorRGB*>(buffer));
+      pRenderMedium->flushFrameBuffer();
+
       spent = glfwGetTime() - t;
 
       std::this_thread::sleep_for(std::chrono::milliseconds(int(1000 / 60 - spent * 1000)));
     }
+    free(buffer);
   }
 } // namespace otto::services
 

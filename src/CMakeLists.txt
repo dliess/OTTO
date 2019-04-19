@@ -32,6 +32,10 @@ target_link_libraries(otto PUBLIC fmt)
 target_link_libraries(otto PUBLIC gamma)
 target_link_libraries(otto PUBLIC foonathan_array)
 target_link_libraries(otto PUBLIC foonathan_type_safe)
+target_link_libraries(otto PUBLIC FpSimulation)
+#target_link_libraries(otto PUBLIC FpDisplay)
+#target_link_libraries(otto PUBLIC midi)
+target_link_libraries(otto PUBLIC Push2Device)
 
 # Enable warnings for local code
 if(MSVC)

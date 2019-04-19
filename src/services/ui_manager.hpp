@@ -72,10 +72,6 @@ namespace otto::services {
     /// Get the currently selected engine
     const std::string& selected_engine_name();
 
-  protected:
-    /// Draws the current screen and overlays.
-    void draw_frame(core::ui::vg::Canvas& ctx);
-
     /// Dispatches to the event handler for the current screen, and handles
     /// global keys.
     ///
@@ -92,6 +88,10 @@ namespace otto::services {
     ///
     /// Can be executed from a separate thread
     void rotary(core::ui::RotaryEvent ev);
+  protected:
+    /// Draws the current screen and overlays.
+    void draw_frame(core::ui::vg::Canvas& ctx);
+
 
     /// Actually executes the key and rotary events
     void flush_events();
