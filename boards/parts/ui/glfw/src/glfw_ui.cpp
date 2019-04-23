@@ -22,7 +22,7 @@
 
 #include <stdlib.h> // calloc
 
-#define __FRONTPANEL_SIMULATION__
+//#define __FRONTPANEL_SIMULATION__
 #ifdef __FRONTPANEL_SIMULATION__
 #include "FpSimulation.h"
 #include "Push2Topology.h"
@@ -240,7 +240,7 @@ namespace otto::services {
     midi::PortNotifier<midi::InputPortListProvider>   inputPortNotifier(inputPortListProvider);
     midi::PortNotifier<midi::OutputPortListProvider>  outputPortNotifier(outputPortListProvider); 
 
-    Push2::Push2Device push2device(inputPortNotifier, outputPortNotifier);
+    Push2::Push2Device push2Device(inputPortNotifier, outputPortNotifier);
     //push2.registerCB();
 
     inputPortNotifier.update();
@@ -267,7 +267,9 @@ namespace otto::services {
 
       t = glfwGetTime();
 
+#ifdef __FRONTPANEL_SIMULATION__
       push2Device.updateInputs();
+#endif
       //glScalef(1,-1,1);
 
       auto [winWidth, winHeight] = main_win.window_size();
