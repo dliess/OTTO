@@ -32,8 +32,8 @@ namespace otto::services {
 
     RtAudio client;
     // optional is used to delay construction to the init phaase, where errros can be handled
-    std::optional<RtMidiIn> midi_in = std::nullopt;
-    std::optional<RtMidiOut> midi_out = std::nullopt;
+    std::optional<otto::board::RtMidiIn> midi_in = std::nullopt;
+    std::optional<otto::board::RtMidiOut> midi_out = std::nullopt;
     bool enable_input = true;
   };
 
