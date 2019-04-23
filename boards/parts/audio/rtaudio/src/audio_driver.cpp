@@ -23,7 +23,7 @@ namespace otto::services {
     init_audio();
     try {
       init_midi();
-    } catch (const RtMidiError& error) {
+    } catch (const otto::board::RtMidiError& error) {
       LOGE("Midi error: {}", error.getMessage());
       LOGE("Ignoring error and continuing");
     }
@@ -81,8 +81,8 @@ namespace otto::services {
 
   void RTAudioAudioManager::init_midi()
   {
-    midi_out.emplace(RtMidi::Api::UNSPECIFIED, "OTTO");
-    midi_in.emplace(RtMidi::Api::UNSPECIFIED, "OTTO");
+    midi_out.emplace(otto::board::RtMidi::Api::UNSPECIFIED, "OTTO");
+    midi_in.emplace(otto::board::RtMidi::Api::UNSPECIFIED, "OTTO");
 
     for (unsigned i = 0; i < midi_out->getPortCount(); i++) {
       auto port = midi_out->getPortName(i);

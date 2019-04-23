@@ -39,6 +39,8 @@
 #include "RtMidi.h"
 #include <sstream>
 
+namespace otto::board {
+
 #if defined(__MACOSX_CORE__)
   #if TARGET_OS_IPHONE
     #define AudioGetCurrentHostTime CAHostTimeBase::GetCurrentTime
@@ -3346,3 +3348,5 @@ void MidiOutJack :: sendMessage( const unsigned char *message, size_t size )
 }
 
 #endif  // __UNIX_JACK__
+
+}  // namespace otto::board
