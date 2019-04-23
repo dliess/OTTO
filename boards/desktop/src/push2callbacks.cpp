@@ -67,13 +67,12 @@ void Push2BtnCb::onPressStateChange(const fp::Button::PressState& data, const fp
                 break;
             }
         }
-
-       // m_rLedSetter.setLed(Push2::getLedOfButton(w), fp::Led::getRGB(fp::Led::Red));
+        m_rLedSetter.setLed(Push2::getLedOfButton(w), fp::Led::getRGB(fp::Led::Red));
     }
     else
     {
         LOGI("btn released {}", (int)w.id);
-     //   m_rLedSetter.setLed(Push2::getLedOfButton(w), fp::Led::getRGB(fp::Led::Black));
+        m_rLedSetter.setLed(Push2::getLedOfButton(w), fp::Led::getRGB(fp::Led::Black));
     }
 }
 
@@ -82,14 +81,17 @@ Push2Btn3dCb::Push2Btn3dCb(fp::Led::ISetter& rLedSetter) :
 {}
 void Push2Btn3dCb::onPressStateChange(const fp::Button3d::StateData& data, const fp::Widget& w) 
 {
+    const int note = w.coord.x + w.coord.y + 100;
     if(fp::Button3d::Pressed == data.pressState)
     {
         LOGI("btn3d pressed (velocity) {} (id) {}", data.velocity ,(int)w.id);
+        Application::current().audio_manager->send_midi_event(core::midi::NoteOnEvent{note});
         m_rLedSetter.setLed(Push2::getLedOfButton3d(w), fp::Led::getRGB(fp::Led::Blue));
     }
     else
     {
         LOGI("btn3d released (velocity) {} (id) {}", data.velocity, (int)w.id);
+        Application::current().audio_manager->send_midi_event(core::midi::NoteOffEvent{note});
         m_rLedSetter.setLed(Push2::getLedOfButton3d(w), fp::Led::getRGB(fp::Led::Black));
     }
 }
