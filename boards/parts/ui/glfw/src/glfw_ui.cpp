@@ -245,9 +245,11 @@ namespace otto::services {
 
     inputPortNotifier.update();
     outputPortNotifier.update();
+    push2Device.init(1000);
 #endif
     board::ui::Push2EncoderCb encoderCb;
     push2Device.registerCB(encoderCb, fp::Widget(fp::Push2Topology::Encoder::eEncoder, fp::IdxAll));
+
     push2Device.setLed(fp::Widget(fp::Push2Topology::Led::eLedT, 0), fp::Led::getRGB(fp::Led::Blue));
     push2Device.setLed(fp::Widget(fp::Push2Topology::Led::eLedT, 1), fp::Led::getRGB(fp::Led::Green));
     push2Device.setLed(fp::Widget(fp::Push2Topology::Led::eLedT, 2), {0xFB, 0xB8, 0x0B});
