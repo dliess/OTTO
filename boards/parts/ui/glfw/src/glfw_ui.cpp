@@ -213,8 +213,8 @@ namespace otto::services {
 
     glfw::NVGWindow main_win(vg::width, vg::height, "OTTO");
 
-    main_win.set_window_aspect_ration(4, 3);
-    main_win.set_window_size_limits(320, 240, GLFW_DONT_CARE, GLFW_DONT_CARE);
+    main_win.set_window_aspect_ration(vg::width, vg::height);
+    main_win.set_window_size_limits(vg::width, vg::height, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
     main_win.key_callback = board::ui::handle_keyevent;
 
@@ -254,15 +254,19 @@ namespace otto::services {
     push2Device.setLed(fp::Widget(fp::Push2Topology::Led::eLedT, 1), {0x94, 0xC1, 0x1F});
     push2Device.setLed(fp::Widget(fp::Push2Topology::Led::eLedT, 2), {0xFB, 0xB8, 0x0B});
     push2Device.setLed(fp::Widget(fp::Push2Topology::Led::eLedT, 3), {0xE5, 0x35, 0x2B});
+    push2Device.setLed(fp::Widget(fp::Push2Topology::Led::eLedShift), fp::Led::getRGB(fp::Led::White));
+    
 
     board::ui::Push2BtnCb buttonCb(push2Device);
+    push2Device.registerCB(buttonCb, fp::Widget(fp::Push2Topology::Button::eBtnT, fp::IdxAll));
     push2Device.registerCB(buttonCb, fp::Widget(fp::Push2Topology::Button::eBtnB, fp::IdxAll));
+    push2Device.registerCB(buttonCb, fp::Widget(fp::Push2Topology::Button::eBtnShift));
 
     board::ui::Push2Btn3dCb button3dCb(push2Device);
     push2Device.registerCB(button3dCb, fp::Widget(fp::Push2Topology::Button3d::eBtnSil, fp::IdxAll, fp::IdxAll));
 
     char* buffer = static_cast<char*>(calloc(4, vg::width * vg::height));
-    //char* flippedBuffer = static_cast<char*>(calloc(4, vg::width * vg::height));
+    char* flippedBuffer = static_cast<char*>(calloc(4, vg::width * vg::height));
 
     const auto displayId = fp::Push2Topology::Display::Id::eDisplay;
     auto pRenderMedium = push2Device.getRenderMedium(fp::Widget(displayId));
@@ -283,10 +287,10 @@ namespace otto::services {
       main_win.begin_frame();
       scale =
         std::min((float) winWidth / (float) vg::width, ((float) winHeight) / (float) vg::height);
-      //main_win.canvas().scale(scale, scale);
+      main_win.canvas().scale(scale, scale);
       //main_win.canvas().transform(1.0, 0.0, 0.0, 0.0, -1.0, vg::height);
-      main_win.canvas().transform(0.8,   0.0, 0.0,
-                                  -0.8,  0.0, vg::height * 1.06);
+      //main_win.canvas().transform(0.8,   0.0, 0.0,
+      //                            -0.8,  0.0, vg::height * 1.06);
       draw_frame(main_win.canvas());
       main_win.end_frame();
 
@@ -294,15 +298,25 @@ namespace otto::services {
       flush_events();
 
       glReadPixels(0, 0, vg::width, vg::height, GL_BGRA, GL_UNSIGNED_BYTE, buffer);
-      const fp::gfx::Rectangle rect( fp::gfx::Coord(100, 0),
+      const fp::gfx::Rectangle rect( fp::gfx::Coord(0, 0),
                                      fp::gfx::Size2D(vg::width, vg::height) );
-      pRenderMedium->streamToSubWindow(rect, reinterpret_cast<fp::ColorRGB*>(buffer));
+      for(unsigned int x = 0; x < vg::width; ++x)
+      {
+        for(unsigned int y = 0; y < vg::height; ++y)
+        {
+          const int srcIdx = x + y * vg::width;
+          const int destIdx = x + (vg::height - y) * vg::width;
+          memcpy(flippedBuffer + (destIdx * 4), buffer + (srcIdx * 4), 4);
+        }
+      }
+      pRenderMedium->streamToSubWindow(rect, reinterpret_cast<fp::ColorRGB*>(flippedBuffer));
       pRenderMedium->flushFrameBuffer();
 
       spent = glfwGetTime() - t;
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(int(1000 / 60 - spent * 1000)));
+      std::this_thread::sleep_for(std::chrono::milliseconds(int(1000 / 30 - spent * 1000)));
     }
+    free(flippedBuffer);
     free(buffer);
   }
 } // namespace otto::services
