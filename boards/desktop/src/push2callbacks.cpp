@@ -13,67 +13,54 @@ Push2BtnCb::Push2BtnCb(fp::Led::ISetter& rLedSetter) :
 {}
 void Push2BtnCb::onPressStateChange(const fp::Button::PressState& data, const fp::Widget& w) 
 {
-    if(fp::Push2Topology::Button::eBtnB != w.id)
+    OKey key;
+    switch(w.id)
     {
-        return;
+        case fp::Push2Topology::Button::eBtnB:
+        {
+            switch(w.coord.x)
+            {
+                case 0: key = OKey::arpeggiator; break;
+                case 1: key = OKey::synth;       break;
+                case 2: key = OKey::envelope;    break;
+                case 3: key = OKey::voices;      break;
+                case 4: key = OKey::fx1;         break;
+                case 5: key = OKey::fx2;         break;
+                case 6: key = OKey::sequencer;   break;
+                case 7: key = OKey::play;        break;
+                default:                         return;
+            }
+            if(fp::Button::Pressed == data)
+            {
+                m_rLedSetter.setLed(Push2::getLedOfButton(w), fp::Led::getRGB(fp::Led::Red));
+            }
+            else
+            {
+                m_rLedSetter.setLed(Push2::getLedOfButton(w), fp::Led::getRGB(fp::Led::Black));
+            }
+            break;
+        }
+        case fp::Push2Topology::Button::eBtnShift:
+        {
+            std::cout << "Setting key to Shift" << std::endl;
+            key = OKey::shift;
+            break;
+        }
+        default:
+        {
+            return;
+        }
     }
     if(fp::Button::Pressed == data)
     {
-        LOGI("btn pressed {}", (int)w.id);
-        switch(w.coord.x)
-        {
-            case 0:
-            {
-                Application::current().ui_manager->keypress(OKey::arpeggiator);
-                break;
-            }
-            case 1:
-            {
-                Application::current().ui_manager->keypress(OKey::synth);
-                break;
-            }
-            case 2:
-            {
-                Application::current().ui_manager->keypress(OKey::envelope);
-                break;
-            }
-            case 3:
-            {
-                Application::current().ui_manager->keypress(OKey::voices);
-                break;
-            }
-            case 4:
-            {
-                Application::current().ui_manager->keypress(OKey::fx1);
-                break;
-            }
-            case 5:
-            {
-                Application::current().ui_manager->keypress(OKey::fx2);
-                break;
-            }
-            case 6:
-            {
-                Application::current().ui_manager->keypress(OKey::sequencer);
-                break;
-            }
-            case 7:
-            {
-                Application::current().ui_manager->keypress(OKey::play);
-                break;
-            }
-            default:
-            {
-                break;
-            }
-        }
-        m_rLedSetter.setLed(Push2::getLedOfButton(w), fp::Led::getRGB(fp::Led::Red));
+        if(key == OKey::shift) std::cout << "Shift pressed" << std::endl;
+        Application::current().ui_manager->keypress(key);
     }
     else
     {
-        LOGI("btn released {}", (int)w.id);
-        m_rLedSetter.setLed(Push2::getLedOfButton(w), fp::Led::getRGB(fp::Led::Black));
-    }
+        if(key == OKey::shift) std::cout << "Shift released" << std::endl;
+        Application::current().ui_manager->keyrelease(key);
+    }            
 }
 
 Push2Btn3dCb::Push2Btn3dCb(fp::Led::ISetter& rLedSetter) :
@@ -81,7 +68,7 @@ Push2Btn3dCb::Push2Btn3dCb(fp::Led::ISetter& rLedSetter) :
 {}
 void Push2Btn3dCb::onPressStateChange(const fp::Button3d::StateData& data, const fp::Widget& w) 
 {
-    const int note = w.coord.x + w.coord.y + 100;
+    const int note = w.coord.x + w.coord.y + 60;
     if(fp::Button3d::Pressed == data.pressState)
     {
         LOGI("btn3d pressed (velocity) {} (id) {}", data.velocity ,(int)w.id);
