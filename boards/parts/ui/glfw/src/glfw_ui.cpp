@@ -227,24 +227,15 @@ namespace otto::services {
 #ifdef __FRONTPANEL_SIMULATION__
   fp::Simulation<fp::Push2Topology> push2Device("127.0.0.1:50051");
 #else
-    midi::InputPortListProvider  inputPortListProvider;
-    if(!inputPortListProvider.init())
+    if(!midi::PortNotifiers::instance().init())
     {
         return;
     }
-    midi::OutputPortListProvider outputPortListProvider;
-    if(!outputPortListProvider.init())
-    {
-        return;
-    }
-    midi::PortNotifier<midi::InputPortListProvider>   inputPortNotifier(inputPortListProvider);
-    midi::PortNotifier<midi::OutputPortListProvider>  outputPortNotifier(outputPortListProvider); 
 
-    Push2::Push2Device push2Device(inputPortNotifier, outputPortNotifier);
+    Push2::Push2Device push2Device;
     //push2.registerCB();
 
-    inputPortNotifier.update();
-    outputPortNotifier.update();
+    midi::PortNotifiers::instance().update();
     push2Device.init(1000);
 #endif
     board::ui::Push2EncoderCb encoderCb;
